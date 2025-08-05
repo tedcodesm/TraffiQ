@@ -6,13 +6,36 @@ const MapSchema = new mongoose.Schema({
     ref: 'User', 
     required: true
   },
-  destination: {
-    type: String,
+  date: {
+    type: Date,
     required: true
   },
-  reachedAt: {
+
+  // Morning trip
+  morningPickup: {
     type: Date,
-    default: Date.now
-  }
+    default: null
+  },
+  morningArrival: {
+    type: Date,
+    default: null
+  },
+
+  // Evening trip
+  eveningPickup: {
+    type: Date,
+    default: null
+  },
+  eveningArrival: {
+    type: Date,
+    default: null
+  },
+
+  from: String,
+  to: String
 },
 {timestamps:true});
+
+const Map = mongoose.model('Map', MapSchema);
+export default Map;
+
