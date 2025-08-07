@@ -21,7 +21,7 @@ const sendVerificationEmail = async (otp, email, username) => {
   try {
     const transporter = nodeMailer.createTransport({
       service: "gmail",
-      port: 587,
+      port: 465,
       secure: true,
       auth: {
         user: verifyemail,
@@ -49,7 +49,7 @@ const sendVerificationEmail = async (otp, email, username) => {
 
 router.post("/register", async (req, res) => {
   try {
-    const { email, password, username,phone,role } = req.body;
+    const { email, password, username,phone } = req.body;
     console.log("requessted body");
 
     if (!email || !password || !username) {
@@ -65,12 +65,18 @@ router.post("/register", async (req, res) => {
         .status(400)
         .json({ message: "Username should be atleast 3 characters long" });
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  return res
+    .status(400)
+    .json({ message: "Please enter a valid email address" });
+}
 
 const existingUser = await User.findOne({ email });
     if (existingUser) {
       console.log("User already exists");
       return res.status(401).json({ message: "User already exist" });
     }
+    
     //generate otp
     const userotp = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -80,7 +86,7 @@ const existingUser = await User.findOne({ email });
       password,
       otp: userotp,
       phone,
-      role,
+      
     });
 
     await user.save();
@@ -94,7 +100,8 @@ const existingUser = await User.findOne({ email });
         email: user.email,
         phone: user.phone,
         role: user.role,
-      },
+        Verified: user.Verified,
+      },message: "User registered successfully, please verify your email"
     });
   } catch (error) {
     console.log("Error in register routes", error);
@@ -111,12 +118,12 @@ router.post("/verify", async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "User does not exist" });
+      return res.status(401).json({ message: "User does not exist" });
     }
 
     if (user.otp !== otp) {
-      return res.status(400).json({ message: "Invalid OTP" });
-    }
+      return res.status(402).json({ message: "Invalid OTP" });
+    }       
 
     user.Verified = true;
     user.otp = "";
@@ -148,7 +155,9 @@ router.post("/login", async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "user does not exist" });
     }
-
+if (!user.Verified) {
+  return res.status(403).json({ message: "Please verify your email before logging in." });
+}
     const isPasswordCorrect = await user.comparePassword(password);
     if (!isPasswordCorrect) {
       return res.status(400).json({

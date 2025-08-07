@@ -25,7 +25,7 @@ router.post('/bus_log', async (req, res) => {
     const date = new Date();
     date.setHours(0, 0, 0, 0); // normalize to midnight
 
-    let map = await Map.findOne({ userId, date });
+    let map = await Map.findOne({ userId, date });  
 
     if (!map) {
       map = new Map({ userId, date });
