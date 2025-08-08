@@ -52,7 +52,7 @@ router.post("/register", async (req, res) => {
     const { email, password, username,phone } = req.body;
     console.log("requessted body");
 
-    if (!email || !password || !username) {
+    if (!email || !password || !username || !phone) {
       return res.status(400).json({ message: "All fields are required" });
     }
     if (password.length < 6) {
@@ -149,14 +149,20 @@ router.post("/login", async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  return res
+    .status(402)
+    .json({ message: "Please enter a valid email address" });
+}
+    
 
     //check if user already exist
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "user does not exist" });
+      return res.status(401).json({ message: "user does not exist" });
     }
 if (!user.Verified) {
-  return res.status(403).json({ message: "Please verify your email before logging in." });
+  return res.status(403).json({ message: "Kindly verify your email address before proceeding with login." });
 }
     const isPasswordCorrect = await user.comparePassword(password);
     if (!isPasswordCorrect) {
